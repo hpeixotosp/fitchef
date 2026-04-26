@@ -134,6 +134,14 @@ export interface Recipe {
   isFavorite?: boolean;
   isManual?: boolean;
   isAIGenerated?: boolean;
+  chefTip?: string;
+  scoreExplicacao?: string;
+  substituicoesSugeridas?: Array<{
+    ingredienteOriginal: string;
+    substituto: string;
+    motivo: string;
+    impactoNutricional: string;
+  }>;
 }
 
 // ─── User Profile ─────────────────────────────────────────

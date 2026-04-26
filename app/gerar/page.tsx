@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { generateRecipe, generateRecipeAI, surpriseRecipe } from "@/lib/generateRecipe";
+import { generateRecipeAI, surpriseRecipeAI } from "@/lib/generateRecipe";
 import { INGREDIENTS, INGREDIENT_CATEGORIES } from "@/lib/ingredients";
 import { useProfile } from "@/hooks/useProfile";
 import { useRecipeHistory } from "@/hooks/useRecipeHistory";
@@ -39,8 +39,7 @@ export default function GeneratorPage() {
   const [difficulty, setDifficulty] = useState<Difficulty | undefined>();
   const [servings, setServings] = useState(2);
   const [loading, setLoading] = useState(false);
-  const [aiWarning, setAiWarning] = useState<string | null>(null);
-  const [aiSource, setAiSource] = useState<"gemini"|"mock"|null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [openCat, setOpenCat] = useState<string | null>(null);
 
   /* ── Ingredients ── */
@@ -66,11 +65,10 @@ export default function GeneratorPage() {
   /* ── Generate ── */
   const handleGenerate = async (isSurprise = false) => {
     setLoading(true);
-    setAiWarning(null);
-    setAiSource(null);
+    setAiError(null);
     try {
       if (isSurprise) {
-        const r = surpriseRecipe();
+        const r = await surpriseRecipeAI();
         add(r);
         router.push(`/receita/${r.id}`);
         return;
@@ -84,19 +82,12 @@ export default function GeneratorPage() {
         nutritionGoal: profile.nutritionalGoal ?? "saúde geral",
       };
 
-      if (USE_AI) {
-        const { recipe, source, warning } = await generateRecipeAI(opts);
-        add(recipe);
-        if (warning) setAiWarning(warning);
-        setAiSource(source);
-        router.push(`/receita/${recipe.id}`);
-      } else {
-        // pequeno delay para UX
-        await new Promise(r => setTimeout(r, 900));
-        const recipe = generateRecipe(opts);
-        add(recipe);
-        router.push(`/receita/${recipe.id}`);
-      }
+      const { recipe } = await generateRecipeAI(opts);
+      add(recipe);
+      router.push(`/receita/${recipe.id}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      setAiError(`Não foi possível gerar sua receita no momento. ${msg}. Tente novamente em instantes.`);
     } finally {
       setLoading(false);
     }
@@ -328,16 +319,16 @@ export default function GeneratorPage() {
         </div>
       )}
 
-      {/* ── Fallback warning toast ── */}
+      {/* ── Error toast ── */}
       <AnimatePresence>
-        {aiWarning && (
+        {aiError && (
           <motion.div
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="flex items-start gap-2 mb-3 text-xs text-fitorange-700 bg-fitorange-50 border border-fitorange-200 rounded-xl px-4 py-2"
+            className="flex items-start gap-2 mb-3 text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{aiWarning}</span>
-            <button onClick={() => setAiWarning(null)} className="ml-auto hover:opacity-70"><X className="w-3 h-3" /></button>
+            <span>{aiError}</span>
+            <button onClick={() => setAiError(null)} className="ml-auto hover:opacity-70"><X className="w-3 h-3" /></button>
           </motion.div>
         )}
       </AnimatePresence>

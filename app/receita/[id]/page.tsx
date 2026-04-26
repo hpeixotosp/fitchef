@@ -13,7 +13,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { usePortionScaler } from "@/hooks/usePortionScaler";
 import { Clock, Flame, ChefHat, Heart, RefreshCw, Timer } from "lucide-react";
 import { motion } from "framer-motion";
-import { MOCK_RECIPES } from "@/lib/generateRecipe";
+
 
 export default function RecipePage() {
   const { id } = useParams<{ id: string }>();
@@ -26,13 +26,20 @@ export default function RecipePage() {
 
   useEffect(() => {
     const history = getHistory();
-    const found = history.find(r => r.id === id) ?? MOCK_RECIPES.find(r => r.id === id);
+    const found = history.find(r => r.id === id);
     if (found) { setRecipe(found); setScaledServings(found.servings); }
   }, [id]);
 
   if (!recipe) return (
-    <div className="section-container text-center">
-      <p className="text-muted-foreground">Receita não encontrada.</p>
+    <div className="section-container text-center flex flex-col items-center gap-4 py-16">
+      <span className="text-6xl">🍽️</span>
+      <h2 className="text-xl font-bold">Receita não encontrada</h2>
+      <p className="text-muted-foreground text-sm max-w-xs">
+        Esta receita não está mais disponível no seu histórico. Que tal criar uma nova?
+      </p>
+      <button onClick={() => router.push("/gerar")} className="btn-fitchef-primary mt-2">
+        Criar nova receita
+      </button>
     </div>
   );
 

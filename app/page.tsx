@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useProfile } from "@/hooks/useProfile";
-import { getRecipeOfTheWeek } from "@/lib/weeklyRecipe";
-import { surpriseRecipe, generateRecipeAI } from "@/lib/generateRecipe";
+import { surpriseRecipeAI, generateRecipeAI } from "@/lib/generateRecipe";
+import { getRecipeOfTheWeekAI } from "@/lib/weeklyRecipe";
 
 import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 import { scoreColor } from "@/lib/nutritionScore";
@@ -15,9 +15,7 @@ import {
   Heart, Smartphone, Search, ArrowRight, Loader2, Bot
 } from "lucide-react";
 
-const USE_AI = process.env.NEXT_PUBLIC_USE_AI === "true";
 
-const weekRecipe = getRecipeOfTheWeek();
 
 const features = [
   { icon: <ChefHat className="w-6 h-6" />, title: "Chefe Virtual", desc: "Nosso chefe virtual cria receitas personalizadas com seus ingredientes" },
@@ -46,6 +44,8 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<{ id: string; name: string; emoji: string; description: string; prepTimeMinutes: number; cookTimeMinutes: number; nutritionPerServing: { calories: number } }[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [weekRecipe, setWeekRecipe] = useState<{ id: string; name: string; emoji: string; description: string; nutritionScore: number; prepTimeMinutes: number; cookTimeMinutes: number; nutritionPerServing: { calories: number } } | null>(null);
+  const [isLoadingWeek, setIsLoadingWeek] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Busca via API em tempo real
@@ -53,10 +53,6 @@ export default function HomePage() {
     if (query.trim().length < 2) { setSearchResults([]); setShowResults(false); return; }
 
     const timer = setTimeout(async () => {
-      if (!USE_AI) {
-        setShowResults(true);
-        return;
-      }
       setIsSearching(true);
       try {
         const opts = {
@@ -75,7 +71,7 @@ export default function HomePage() {
       } finally {
         setIsSearching(false);
       }
-    }, 500);
+    }, 700);
 
     return () => clearTimeout(timer);
   }, [query]);
@@ -96,11 +92,34 @@ export default function HomePage() {
     else router.push("/gerar");
   };
 
-  const handleSurprise = () => {
+  const handleSurprise = async () => {
     if (!profile.isConfigured) { router.push("/perfil"); return; }
-    const r = surpriseRecipe();
-    add(r);
-    router.push(`/receita/${r.id}`);
+    try {
+      const r = await surpriseRecipeAI();
+      add(r);
+      router.push(`/receita/${r.id}`);
+    } catch {
+      router.push("/gerar");
+    }
+  };
+
+  const handleWeekRecipe = async () => {
+    if (weekRecipe) {
+      add(weekRecipe as any);
+      router.push(`/receita/${weekRecipe.id}`);
+      return;
+    }
+    setIsLoadingWeek(true);
+    try {
+      const r = await getRecipeOfTheWeekAI();
+      setWeekRecipe(r as any);
+      add(r);
+      router.push(`/receita/${r.id}`);
+    } catch {
+      router.push("/gerar");
+    } finally {
+      setIsLoadingWeek(false);
+    }
   };
 
   const handleSelectResult = (recipe: typeof searchResults[0]) => {
@@ -235,56 +254,46 @@ export default function HomePage() {
         <div className="flex flex-col items-center gap-2 mb-10 text-center">
           <span className="badge-orange">⭐ Destaque da Semana</span>
           <h2 className="text-2xl md:text-3xl font-bold">Receita da Semana</h2>
-          <p className="text-sm text-muted-foreground">Escolhida pelo nosso Chefe para você</p>
+          <p className="text-sm text-muted-foreground">Gerada pelo nosso Chefe especialmente para você</p>
         </div>
 
-        <div className="max-w-2xl mx-auto card-fitchef p-0 overflow-hidden relative group">
-          <div className="h-52 bg-gradient-hero flex items-center justify-center text-8xl relative overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-30">
-              {weekRecipe.emoji}
+        <div className="max-w-2xl mx-auto card-fitchef overflow-hidden">
+          {weekRecipe ? (
+            <>
+              <div className="h-52 bg-gradient-hero flex items-center justify-center relative overflow-hidden group">
+                <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-30">{weekRecipe.emoji}</div>
+                {(weekRecipe as any).imageBase64 ? (
+                  <Image src={(weekRecipe as any).imageBase64} alt={weekRecipe.name} fill className="object-cover opacity-90 group-hover:scale-105 transition-transform duration-500" unoptimized />
+                ) : (
+                  <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" alt={weekRecipe.name} className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+              <div className="p-6 flex flex-col gap-4">
+                <h3 className="text-xl font-bold">{weekRecipe.emoji} {weekRecipe.name}</h3>
+                <p className="text-sm text-muted-foreground">{weekRecipe.description}</p>
+                <div className="flex gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{weekRecipe.prepTimeMinutes + weekRecipe.cookTimeMinutes} min</span>
+                  <span className="flex items-center gap-1"><Flame className="w-4 h-4 text-fitorange-500" />{weekRecipe.nutritionPerServing.calories} kcal</span>
+                  <span className="flex items-center gap-1">
+                    <Star className="w-4 h-4" style={{ color: scoreColor(weekRecipe.nutritionScore) }} />
+                    {weekRecipe.nutritionScore.toFixed(1)}
+                  </span>
+                </div>
+                <button onClick={handleWeekRecipe} className="btn-fitchef-primary self-start">
+                  Ver receita completa
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-4 py-12 text-center px-6">
+              <span className="text-6xl">🍽️</span>
+              <p className="text-muted-foreground text-sm">Clique para o Chefe criar a receita desta semana especialmente para você!</p>
+              <button onClick={handleWeekRecipe} disabled={isLoadingWeek} className="btn-fitchef-primary flex items-center gap-2 disabled:opacity-60">
+                {isLoadingWeek ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando receita...</> : <><Sparkles className="w-4 h-4" /> Ver Receita da Semana</>}
+              </button>
             </div>
-            {weekRecipe.imageBase64 ? (
-              <Image
-                src={weekRecipe.imageBase64}
-                alt={weekRecipe.name}
-                fill
-                className="object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                unoptimized
-              />
-            ) : (
-              <img
-                src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80`}
-                alt={weekRecipe.name}
-                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
-                onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            <div className="absolute bottom-4 left-4 flex gap-2">
-              {weekRecipe.dietTags.slice(0, 2).map(t => (
-                <span key={t} className="badge-green">{t}</span>
-              ))}
-              <span className="badge-orange">{weekRecipe.difficulty}</span>
-            </div>
-          </div>
-          <div className="p-6 flex flex-col gap-4">
-            <h3 className="text-xl font-bold">{weekRecipe.emoji} {weekRecipe.name}</h3>
-            <p className="text-sm text-muted-foreground">{weekRecipe.description}</p>
-            <div className="flex gap-4 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{weekRecipe.prepTimeMinutes + weekRecipe.cookTimeMinutes} min</span>
-              <span className="flex items-center gap-1"><Flame className="w-4 h-4 text-fitorange-500" />{weekRecipe.nutritionPerServing.calories} kcal</span>
-              <span className="flex items-center gap-1">
-                <Star className="w-4 h-4" style={{ color: scoreColor(weekRecipe.nutritionScore) }} />
-                {weekRecipe.nutritionScore.toFixed(1)}
-              </span>
-            </div>
-            <button
-              onClick={() => { add(weekRecipe); router.push(`/receita/${weekRecipe.id}`); }}
-              className="btn-fitchef-primary self-start"
-            >
-              Ver receita completa
-            </button>
-          </div>
+          )}
         </div>
       </section>
 

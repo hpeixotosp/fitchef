@@ -6,7 +6,7 @@ import { Recipe } from "@/lib/types";
 import { useCookingMode } from "@/hooks/useCookingMode";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { useTimer } from "@/hooks/useTimer";
-import { MOCK_RECIPES } from "@/lib/generateRecipe";
+
 import { ChevronLeft, ChevronRight, Timer, Play, Pause, RotateCcw, CheckCircle2, Star } from "lucide-react";
 
 function TimerBlock({ minutes }: { minutes: number }) {
@@ -33,7 +33,7 @@ export default function CookingModePage() {
 
   useEffect(() => {
     const history = getHistory();
-    const found = history.find(r => r.id === id) ?? MOCK_RECIPES.find(r => r.id === id);
+    const found = history.find(r => r.id === id);
     if (found) setRecipe(found);
   }, [id]);
 
@@ -41,7 +41,15 @@ export default function CookingModePage() {
 
   const cm = useCookingMode(recipe?.steps ?? []);
 
-  if (!recipe) return <div className="flex items-center justify-center min-h-screen text-white bg-gray-900">Carregando...</div>;
+  if (!recipe) return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-white bg-gray-900">
+      <span className="text-6xl">🍽️</span>
+      <p className="text-lg font-semibold">Receita não encontrada</p>
+      <button onClick={() => router.push("/gerar")} className="px-6 py-3 bg-fitgreen-500 hover:bg-fitgreen-600 rounded-xl font-semibold transition-colors">
+        Criar nova receita
+      </button>
+    </div>
+  );
 
   if (cm.completed) return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center gap-8 px-4 text-white">

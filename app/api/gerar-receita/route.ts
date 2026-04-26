@@ -7,7 +7,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { callGemini } from "@/lib/gemini";
 import { generateRecipeImage } from "@/lib/generateImage";
-import { MOCK_RECIPES } from "@/lib/generateRecipe";
 import { Recipe } from "@/lib/types";
 
 // ─── Rate Limiting simples (memória por processo) ─────────────────────────────
@@ -33,10 +32,7 @@ function sanitize(value: unknown, maxLen = 200): string {
   return value.replace(/[<>{}]/g, "").slice(0, maxLen).trim();
 }
 
-// ─── Receita mock de fallback ─────────────────────────────────────────────────
-function getFallbackRecipe() {
-  return MOCK_RECIPES[Math.floor(Math.random() * MOCK_RECIPES.length)];
-}
+
 
 // ─── Montar prompt ─────────────────────────────────────────────────────────────
 function buildPrompt(body: Record<string, unknown>): string {
@@ -222,12 +218,9 @@ export async function POST(req: NextRequest) {
     clearTimeout(timeout);
     const msg = err instanceof Error ? err.message : "Erro inesperado";
     console.error("[FitChef/API] Erro ao chamar Gemini:", msg);
-
-    // Fallback automático com receita do mock
-    const fallback = getFallbackRecipe();
     return NextResponse.json(
-      { recipe: fallback, source: "mock", warning: msg },
-      { status: 200 } // 200 para não quebrar o cliente
+      { error: `Não foi possível gerar sua receita: ${msg}` },
+      { status: 500 }
     );
   }
 }

@@ -187,19 +187,12 @@ export async function POST(req: NextRequest) {
   const timeout = setTimeout(() => controller.abort(), 30_000);
 
   try {
-    const dishNameForImage = sanitize(body.dishName as string) || "delicious healthy dish";
-
-    const [raw, imageBase64] = await Promise.all([
-      callGemini(prompt),
-      generateRecipeImage(dishNameForImage)
-    ]);
+    const raw = await callGemini(prompt);
     
-    clearTimeout(timeout);
-
     // O Gemini frequentemente retorna com bloco de código Markdown mesmo pedindo para não usar
     const cleanRaw = raw.replace(/```json/i, "").replace(/```/g, "").trim();
 
-    let parsed: unknown;
+    let parsed: any; // Usamos any aqui temporariamente para extração
     try {
       // Tenta achar o JSON isolado caso haja lixo ao redor
       const jsonMatch = cleanRaw.match(/\{[\s\S]*\}/);
@@ -211,6 +204,13 @@ export async function POST(req: NextRequest) {
 
     const recipe = mapToRecipe(parsed, sanitize(body.mode as string) || "normal");
     
+    // Geramos a imagem DEPOIS da receita, usando exatamente o nome e ingredientes criados pela IA
+    const ingredientsList = recipe.ingredients.map(i => i.ingredient.name).join(", ");
+    const imagePromptDetails = `${recipe.name} made with ${ingredientsList}`;
+    
+    const imageBase64 = await generateRecipeImage(imagePromptDetails);
+    clearTimeout(timeout);
+
     // Adiciona a imagem gerada se existir
     if (imageBase64) {
       recipe.imageBase64 = imageBase64;

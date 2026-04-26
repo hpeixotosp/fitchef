@@ -18,7 +18,7 @@ export async function generateRecipeImage(recipeName: string): Promise<string | 
     return null;
   }
 
-  const prompt = `Professional food photography of ${recipeName}. Overhead shot, natural lighting, clean white background, garnished and plated beautifully, restaurant quality, high resolution, appetizing, vibrant colors. No text, no watermark, no people.`;
+  const prompt = `Professional food photography of ${recipeName}. Overhead shot, natural lighting, clean background, restaurant quality, high resolution, appetizing, vibrant colors. No text, no watermark, no people.`;
 
   try {
     const model = getClient().getGenerativeModel({
@@ -29,16 +29,9 @@ export async function generateRecipeImage(recipeName: string): Promise<string | 
     });
 
     const result = await model.generateContent(prompt);
-    // Para modelos de imagem no Gemini API padrão que retornam texto/código com base64 ou
-    // se estivermos usando a flag de modalidade (na nova versão):
     const response = result.response;
     
-    // O SDK padrão atual de Node para Gemini retorna texto, mas se o modelo for 
-    // um modelo de imagem que devolve JSON ou objeto específico, tentamos extrair.
-    // Como a API de imagem do Gemini geralmente retorna a imagem em base64 dentro dos candidates:
     const base64Data = response.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    // Se o SDK / API injetar inlineData (formato padrão de imagens do Gemini):
     const inlineData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData;
     
     if (inlineData && inlineData.data) {
@@ -46,15 +39,16 @@ export async function generateRecipeImage(recipeName: string): Promise<string | 
     }
 
     if (base64Data && base64Data.length > 100) {
-      // Se já vier formatado ou for apenas o base64
       if (base64Data.startsWith("data:image")) return base64Data;
       return `data:image/png;base64,${base64Data}`;
     }
 
-    return null;
+    throw new Error("Formato de imagem não reconhecido no retorno do Gemini");
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[FitChef/Image] Erro ao gerar imagem do prato:", msg);
-    return null;
+    console.error("[FitChef/Image] Gemini Image falhou, usando Pollinations como fallback:", msg);
+    
+    // Fallback: Retorna uma URL do Pollinations AI baseada na receita gerada
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=600&nologo=true`;
   }
 }

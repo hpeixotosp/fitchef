@@ -26,7 +26,7 @@ export async function callGemini(prompt: string): Promise<string> {
   if (!API_KEY) throw new Error("GEMINI_API_KEY não configurada");
 
   const model = getClient().getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
       temperature: 0.8,
       maxOutputTokens: 2048,

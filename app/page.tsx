@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useProfile } from "@/hooks/useProfile";
 import { getRecipeOfTheWeek } from "@/lib/weeklyRecipe";
 import { surpriseRecipe, generateRecipeAI } from "@/lib/generateRecipe";
-import { reverseSearch } from "@/lib/reverseSearch";
+
 import { useRecipeHistory } from "@/hooks/useRecipeHistory";
 import { scoreColor } from "@/lib/nutritionScore";
 import {
@@ -43,17 +43,41 @@ export default function HomePage() {
   const router = useRouter();
 
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<ReturnType<typeof reverseSearch>>([]);
+  const [searchResults, setSearchResults] = useState<{ id: string; name: string; emoji: string; description: string; prepTimeMinutes: number; cookTimeMinutes: number; nutritionPerServing: { calories: number } }[]>([]);
   const [showResults, setShowResults] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Busca em tempo real
+  // Busca via API em tempo real
   useEffect(() => {
-    if (query.trim().length < 2) { setResults([]); setShowResults(false); return; }
-    const r = reverseSearch(query);
-    setResults(r);
-    setShowResults(true);
+    if (query.trim().length < 2) { setSearchResults([]); setShowResults(false); return; }
+
+    const timer = setTimeout(async () => {
+      if (!USE_AI) {
+        setShowResults(true);
+        return;
+      }
+      setIsSearching(true);
+      try {
+        const opts = {
+          mode: "normal" as const,
+          ingredients: [],
+          filters: { maxPrepMinutes: 999, servings: 2 } as any,
+          dishName: query.trim(),
+        };
+        const { recipe } = await generateRecipeAI(opts);
+        setSearchResults([recipe]);
+        setShowResults(true);
+      } catch (err) {
+        console.error("Erro na busca:", err);
+        setSearchResults([]);
+        setShowResults(true);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [query]);
 
   // Fechar dropdown ao clicar fora
@@ -79,46 +103,18 @@ export default function HomePage() {
     router.push(`/receita/${r.id}`);
   };
 
-  const handleSelectResult = (recipeId: string) => {
-    const found = results.find(r => r.recipe.id === recipeId);
-    if (found) { add(found.recipe); router.push(`/receita/${recipeId}`); }
+  const handleSelectResult = (recipe: typeof searchResults[0]) => {
+    add(recipe as any);
+    router.push(`/receita/${recipe.id}`);
     setShowResults(false);
     setQuery("");
   };
 
-  const handleGenerateSpecific = async (dishName: string) => {
-    if (!USE_AI) {
-      router.push("/gerar");
-      return;
-    }
-    
-    setIsGenerating(true);
-    try {
-      const opts = {
-        mode: "normal" as const,
-        ingredients: [],
-        filters: { maxPrepMinutes: 999, servings: 2 } as any,
-        dishName: dishName,
-      };
-      const { recipe } = await generateRecipeAI(opts);
-      add(recipe);
-      router.push(`/receita/${recipe.id}`);
-    } catch (err) {
-      console.error(err);
-      router.push("/gerar");
-    } finally {
-      setIsGenerating(false);
-      setShowResults(false);
-    }
-  };
+
 
   const handleSearchEnter = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      if (results.length > 0) {
-        handleSelectResult(results[0].recipe.id);
-      } else if (query.trim().length > 2) {
-        handleGenerateSpecific(query.trim());
-      }
+    if (e.key === "Enter" && searchResults.length > 0) {
+      handleSelectResult(searchResults[0]);
     }
   };
 
@@ -175,37 +171,27 @@ export default function HomePage() {
                     exit={{ opacity: 0, y: -8 }}
                     className="absolute top-full mt-2 left-0 right-0 bg-background border border-border rounded-2xl shadow-xl overflow-hidden z-50"
                   >
-                    {isGenerating ? (
+                    {isSearching ? (
                       <div className="px-4 py-8 text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
                         <Loader2 className="w-8 h-8 animate-spin text-fitgreen-500" />
                         <p>Nosso Chefe está preparando sua <strong>{query}</strong>...</p>
                       </div>
-                    ) : results.length === 0 ? (
+                    ) : searchResults.length === 0 ? (
                       <div className="px-4 py-6 text-sm text-muted-foreground text-center flex flex-col gap-3">
                         <p>Nenhuma receita encontrada para &quot;<strong>{query}</strong>&quot;.</p>
-                        {USE_AI ? (
-                          <button
-                            onClick={() => handleGenerateSpecific(query.trim())}
-                            className="btn-fitchef-primary text-xs mx-auto flex items-center gap-2"
-                          >
-                            <Bot className="w-4 h-4" />
-                            Pedir para o Chefe criar agora!
-                          </button>
-                        ) : (
                           <button
                             onClick={() => router.push("/gerar")}
                             className="mt-2 text-fitgreen-600 hover:underline font-medium flex items-center gap-1 mx-auto"
                           >
                             Ir para o Gerador de Receitas <ArrowRight className="w-3.5 h-3.5" />
                           </button>
-                        )}
                       </div>
                     ) : (
                       <ul>
-                        {results.map(({ recipe }) => (
+                        {searchResults.map((recipe) => (
                           <li key={recipe.id}>
                             <button
-                              onClick={() => handleSelectResult(recipe.id)}
+                              onClick={() => handleSelectResult(recipe)}
                               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors text-left"
                             >
                               <span className="text-2xl">{recipe.emoji}</span>

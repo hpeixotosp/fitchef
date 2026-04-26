@@ -47,7 +47,7 @@ export default function EditProfilePage() {
                 <input
                   type={f.type}
                   placeholder={f.placeholder}
-                  value={(profile as Record<string, unknown>)[f.key] as string ?? ""}
+                  value={(profile as any)[f.key] as string ?? ""}
                   onChange={e => update({ [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value } as Parameters<typeof update>[0])}
                   className="mt-1 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-fitgreen-400"
                 />

@@ -133,6 +133,7 @@ export interface Recipe {
   ratingComment?: string;
   isFavorite?: boolean;
   isManual?: boolean;
+  isAIGenerated?: boolean;
 }
 
 // ─── User Profile ─────────────────────────────────────────

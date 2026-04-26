@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { callGemini } from "@/lib/gemini";
 import { generateRecipeImage } from "@/lib/generateImage";
 import { MOCK_RECIPES } from "@/lib/generateRecipe";
+import { Recipe } from "@/lib/types";
 
 // ─── Rate Limiting simples (memória por processo) ─────────────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -107,7 +108,7 @@ Retorne EXATAMENTE este JSON (sem campos extras, sem comentários):
 
 // ─── Mapear resposta Gemini → tipo Recipe ──────────────────────────────────────
 // eslint-disable-next-line
-function mapToRecipe(data: any, mode: string) {
+function mapToRecipe(data: any, mode: string): Recipe {
   const id = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   return {
     id,

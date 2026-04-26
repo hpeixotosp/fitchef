@@ -97,7 +97,7 @@ export default function HomePage() {
       const opts = {
         mode: "normal" as const,
         ingredients: [],
-        filters: { mealType: "", dietTags: [], occasion: "", difficulty: "", maxPrepMinutes: 999, servings: 2 },
+        filters: { maxPrepMinutes: 999, servings: 2 } as any,
         dishName: dishName,
       };
       const { recipe } = await generateRecipeAI(opts);

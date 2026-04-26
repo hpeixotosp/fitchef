@@ -40,10 +40,10 @@ function getFallbackRecipe() {
 
 // ─── Montar prompt ─────────────────────────────────────────────────────────────
 function buildPrompt(body: Record<string, unknown>): string {
-  const ingredients   = Array.isArray(body.ingredients)   ? (body.ingredients as string[]).map(s => sanitize(s)).join(", ") : "variados";
-  const equipment     = Array.isArray(body.equipment)     ? (body.equipment   as string[]).map(s => sanitize(s)).join(", ") : "fogão";
+  const ingredients   = Array.isArray(body.ingredients) && body.ingredients.length > 0 ? (body.ingredients as string[]).map(s => sanitize(s)).join(", ") : "variados";
+  const equipment     = Array.isArray(body.equipment) && body.equipment.length > 0 ? (body.equipment as string[]).map(s => sanitize(s)).join(", ") : "fogão";
   const mealType      = sanitize(body.mealType      as string) || "qualquer";
-  const dietTags      = Array.isArray(body.dietTags) ? (body.dietTags as string[]).map(s => sanitize(s)).join(", ") : "nenhuma";
+  const dietTags      = Array.isArray(body.dietTags) && body.dietTags.length > 0 ? (body.dietTags as string[]).map(s => sanitize(s)).join(", ") : "nenhuma";
   const occasion      = sanitize(body.occasion      as string) || "qualquer";
   const difficulty    = sanitize(body.difficulty    as string) || "Fácil";
   const servings      = Number(body.servings)  > 0 ? Number(body.servings)  : 2;

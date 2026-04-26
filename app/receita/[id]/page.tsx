@@ -81,7 +81,7 @@ export default function RecipePage() {
           />
         ) : (
           <img
-            src={`https://source.unsplash.com/800x600/?food,${encodeURIComponent(recipe.imageQuery || recipe.name)}`}
+            src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80`}
             alt={recipe.name}
             className="w-full h-full object-cover relative z-10"
             onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}

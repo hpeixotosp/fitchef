@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 24 90% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 142 63% 41%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 142 30% 82%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 24 90% 54%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 24 90% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 142 63% 41%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 22%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 24 90% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* FitChef Button Variants */
+  .btn-fitchef-primary {
+    @apply bg-fitorange-500 hover:bg-fitorange-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:scale-105 active:scale-95;
+  }
+  .btn-fitchef-secondary {
+    @apply bg-fitgreen-500 hover:bg-fitgreen-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg hover:scale-105 active:scale-95;
+  }
+  .btn-fitchef-outline {
+    @apply border-2 border-fitgreen-500 text-fitgreen-600 hover:bg-fitgreen-50 font-semibold px-6 py-3 rounded-xl transition-all duration-200;
+  }
+
+  /* FitChef Card */
+  .card-fitchef {
+    @apply bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden;
+  }
+
+  /* FitChef Badge */
+  .badge-green {
+    @apply bg-fitgreen-100 text-fitgreen-700 text-xs font-semibold px-2.5 py-1 rounded-full;
+  }
+  .badge-orange {
+    @apply bg-fitorange-100 text-fitorange-700 text-xs font-semibold px-2.5 py-1 rounded-full;
+  }
+  .badge-blue {
+    @apply bg-fitblue-100 text-fitblue-700 text-xs font-semibold px-2.5 py-1 rounded-full;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    @apply bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(90deg, #2db84b, #f47920, #1e3a8a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Section container */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24;
+  }
+
+  /* Hero gradient overlay */
+  .hero-gradient {
+    background: radial-gradient(ellipse at top, rgba(45,184,75,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at bottom right, rgba(244,121,32,0.12) 0%, transparent 60%);
+  }
+
+  /* Nutrition score circle */
+  .nutrition-ring {
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease-in-out;
+  }
+
+  /* Ingredient chip */
+  .ingredient-chip {
+    @apply flex items-center gap-2 bg-fitgreen-50 border border-fitgreen-200 text-fitgreen-800 text-sm px-3 py-1.5 rounded-full font-medium;
+  }
+
+  /* Timer display */
+  .timer-display {
+    @apply font-mono text-6xl font-bold tabular-nums;
+  }
+
+  /* Week slot */
+  .week-slot {
+    @apply min-h-[80px] border-2 border-dashed border-border rounded-xl p-2 transition-colors duration-200;
+  }
+  .week-slot:hover {
+    @apply border-fitgreen-400 bg-fitgreen-50;
+  }
+  .week-slot.filled {
+    @apply border-fitgreen-300 bg-fitgreen-50 border-solid;
+  }
+  .week-slot.over {
+    @apply border-fitorange-400 bg-fitorange-50;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 184, 75, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 184, 75, 0.7);
+}
+
+/* Focus visible styles */
+*:focus-visible {
+  outline: 2px solid #f47920;
+  outline-offset: 2px;
+}
+
+/* Cooking mode font size */
+.cooking-mode-text {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  line-height: 1.6;
+}
+
+/* Animated gradient border */
+@keyframes gradient-border {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-border {
+  background: linear-gradient(90deg, #2db84b, #f47920, #1e3a8a, #2db84b);
+  background-size: 300% 300%;
+  animation: gradient-border 4s ease infinite;
+}

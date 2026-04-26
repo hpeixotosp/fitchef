@@ -182,7 +182,7 @@ export default function HomePage() {
                       </div>
                     ) : results.length === 0 ? (
                       <div className="px-4 py-6 text-sm text-muted-foreground text-center flex flex-col gap-3">
-                        <p>Nenhuma receita encontrada para "<strong>{query}</strong>".</p>
+                        <p>Nenhuma receita encontrada para &quot;<strong>{query}</strong>&quot;.</p>
                         {USE_AI ? (
                           <button
                             onClick={() => handleGenerateSpecific(query.trim())}
@@ -252,9 +252,27 @@ export default function HomePage() {
           <p className="text-sm text-muted-foreground">Escolhida pelo nosso Chefe para você</p>
         </div>
 
-        <div className="max-w-2xl mx-auto card-fitchef p-0 overflow-hidden">
-          <div className="h-52 bg-gradient-hero flex items-center justify-center text-8xl relative">
-            <span className="opacity-40">{weekRecipe.emoji}</span>
+        <div className="max-w-2xl mx-auto card-fitchef p-0 overflow-hidden relative group">
+          <div className="h-52 bg-gradient-hero flex items-center justify-center text-8xl relative overflow-hidden">
+            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-30">
+              {weekRecipe.emoji}
+            </div>
+            {weekRecipe.imageBase64 ? (
+              <Image
+                src={weekRecipe.imageBase64}
+                alt={weekRecipe.name}
+                fill
+                className="object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+                unoptimized
+              />
+            ) : (
+              <img
+                src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80`}
+                alt={weekRecipe.name}
+                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+                onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             <div className="absolute bottom-4 left-4 flex gap-2">
               {weekRecipe.dietTags.slice(0, 2).map(t => (

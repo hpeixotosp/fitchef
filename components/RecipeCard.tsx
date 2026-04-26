@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { scoreColor } from "@/lib/nutritionScore";
 import { useFavorites } from "@/hooks/useFavorites";
+import Image from "next/image";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -35,12 +36,22 @@ export function RecipeCard({ recipe, index = 0 }: RecipeCardProps) {
         <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-30">
           {recipe.emoji}
         </div>
-        <img
-          src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80`}
-          alt={recipe.name}
-          className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
-          onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
-        />
+        {recipe.imageBase64 ? (
+          <Image
+            src={recipe.imageBase64}
+            alt={recipe.name}
+            fill
+            className="object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
+            unoptimized
+          />
+        ) : (
+          <img
+            src={`https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80`}
+            alt={recipe.name}
+            className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        )}
         {/* Badges top */}
         <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
           {recipe.specialBadge && (

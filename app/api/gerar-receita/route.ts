@@ -106,7 +106,7 @@ Retorne EXATAMENTE este JSON (sem campos extras, sem comentários):
 }
 
 // ─── Mapear resposta Gemini → tipo Recipe ──────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line
 function mapToRecipe(data: any, mode: string) {
   const id = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   return {

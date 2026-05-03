@@ -86,6 +86,7 @@ Instruções adicionais:
 - Cada passo deve ser detalhado, com técnicas, temperaturas e pontos de cozimento
 - O score nutricional deve ser honesto (0=ruim, 10=excelente)
 - A dica do chef deve ser única e prática
+- NÃO INCLUA citações ou marcadores de busca (como [1], [2]) na sua resposta. O retorno deve ser 100% JSON puro.
 
 Retorne EXATAMENTE este JSON (sem campos extras, sem comentários):
 {
@@ -200,8 +201,12 @@ export async function POST(req: NextRequest) {
   try {
     const raw = await callGemini(prompt);
     
-    // O Gemini frequentemente retorna com bloco de código Markdown mesmo pedindo para não usar
-    const cleanRaw = raw.replace(/```json/i, "").replace(/```/g, "").trim();
+    // Remove tags markdown e possíveis citações [1] do Google Search
+    const cleanRaw = raw
+      .replace(/```json/i, "")
+      .replace(/```/g, "")
+      .replace(/\[\d+\]/g, "")
+      .trim();
 
     let parsed: any; // Usamos any aqui temporariamente para extração
     try {

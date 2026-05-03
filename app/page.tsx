@@ -103,13 +103,15 @@ export default function HomePage() {
   };
 
   const handleSurprise = async () => {
-    if (!profile.isConfigured) { router.push("/perfil"); return; }
+    setIsGlobalLoading(true);
     try {
       const r = await surpriseRecipeAI();
       add(r);
       router.push(`/receita/${r.id}`);
-    } catch {
-      router.push("/gerar");
+    } catch (err) {
+      console.error("Surpreenda-me falhou:", err);
+    } finally {
+      setIsGlobalLoading(false);
     }
   };
 
@@ -125,8 +127,8 @@ export default function HomePage() {
       setWeekRecipe(r as any);
       add(r);
       router.push(`/receita/${r.id}`);
-    } catch {
-      router.push("/gerar");
+    } catch (err) {
+      console.error("Receita da semana falhou:", err);
     } finally {
       setIsLoadingWeek(false);
     }
@@ -143,20 +145,19 @@ export default function HomePage() {
 
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim().length < 2) return;
-
-    if (searchResults.length > 0) {
-      handleSelectResult(searchResults[0]);
-    } else {
-      setIsGlobalLoading(true);
-      try {
-        const recipe = await performSearch(query);
-        if (recipe) {
-          handleSelectResult(recipe);
-        }
-      } finally {
-        setIsGlobalLoading(false);
+    const term = query.trim();
+    if (term.length < 2) return;
+    setShowResults(false);
+    setIsGlobalLoading(true);
+    try {
+      const recipe = await performSearch(term);
+      if (recipe) {
+        add(recipe as any);
+        router.push(`/receita/${recipe.id}`);
+        setQuery("");
       }
+    } finally {
+      setIsGlobalLoading(false);
     }
   };
 

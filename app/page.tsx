@@ -48,29 +48,38 @@ export default function HomePage() {
   const [isLoadingWeek, setIsLoadingWeek] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Busca via API em tempo real
-  useEffect(() => {
-    if (query.trim().length < 2) { setSearchResults([]); setShowResults(false); return; }
+  const performSearch = async (searchTerm: string) => {
+    if (searchTerm.trim().length < 2) return;
+    setIsSearching(true);
+    setShowResults(true);
+    try {
+      const opts = {
+        mode: "normal" as const,
+        ingredients: [],
+        filters: { maxPrepMinutes: 999, servings: 2 } as any,
+        dishName: searchTerm.trim(),
+      };
+      const { recipe } = await generateRecipeAI(opts);
+      setSearchResults([recipe]);
+      return recipe;
+    } catch (err) {
+      console.error("Erro na busca:", err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const opts = {
-          mode: "normal" as const,
-          ingredients: [],
-          filters: { maxPrepMinutes: 999, servings: 2 } as any,
-          dishName: query.trim(),
-        };
-        const { recipe } = await generateRecipeAI(opts);
-        setSearchResults([recipe]);
-        setShowResults(true);
-      } catch (err) {
-        console.error("Erro na busca:", err);
-        setSearchResults([]);
-        setShowResults(true);
-      } finally {
-        setIsSearching(false);
-      }
+  // Busca via API em tempo real com debounce
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      performSearch(query);
     }, 700);
 
     return () => clearTimeout(timer);
@@ -131,9 +140,15 @@ export default function HomePage() {
 
 
 
-  const handleSearchEnter = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && searchResults.length > 0) {
+  const handleSearchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim().length < 2) return;
+
+    if (searchResults.length > 0) {
       handleSelectResult(searchResults[0]);
+    } else {
+      const recipe = await performSearch(query);
+      if (recipe) handleSelectResult(recipe);
     }
   };
 
@@ -170,13 +185,12 @@ export default function HomePage() {
 
           {/* ── Busca com dropdown ── */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="w-full max-w-lg" ref={searchRef}>
-            <div className="relative">
+            <form onSubmit={handleSearchSubmit} className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="text"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                onKeyDown={handleSearchEnter}
                 placeholder="O que você quer cozinhar hoje? Ex: lasanha, panqueca..."
                 className="w-full pl-12 pr-4 py-3.5 rounded-2xl border-2 border-fitgreen-200 dark:border-fitgreen-800 bg-background text-sm focus:outline-none focus:border-fitgreen-500 transition-colors"
               />
@@ -244,7 +258,7 @@ export default function HomePage() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </form>
           </motion.div>
         </div>
       </section>

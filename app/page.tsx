@@ -15,7 +15,79 @@ import {
   Heart, Smartphone, Search, ArrowRight, Loader2, Bot
 } from "lucide-react";
 
+// ─── Loading Overlay ───────────────────────────────────────────────────────────
+const LOADING_MSGS = [
+  "Consultando os melhores chefs do Brasil... 🧑‍🍳",
+  "Escolhendo os ingredientes certos para você... 🥕",
+  "Ajustando as pitadas de sabor e saúde... 🌿",
+  "Verificando os segredos da cozinha... 🔪",
+  "Quase lá! Montando o prato com carinho... 🍽️",
+  "Calculando as calorias na ponta do garfo... ⚖️",
+  "Sua receita está ficando uma delícia... 😋",
+];
 
+function LoadingOverlay({ query }: { query: string }) {
+  const [msgIdx, setMsgIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMsgIdx(i => (i + 1) % LOADING_MSGS.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-background/85 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+    >
+      <div className="bg-card p-8 rounded-3xl shadow-2xl border border-border flex flex-col items-center gap-6 max-w-sm w-full text-center">
+        {/* Ícone animado */}
+        <div className="relative">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+            className="w-16 h-16 rounded-full border-4 border-fitgreen-200 border-t-fitgreen-500"
+          />
+          <Bot className="w-8 h-8 text-fitgreen-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        </div>
+
+        {/* Título */}
+        <div className="space-y-1">
+          <h3 className="text-xl font-bold">
+            {query ? `Preparando sua ${query}` : "Criando uma surpresa gostosa"}
+            <span className="text-fitgreen-500"> ✨</span>
+          </h3>
+        </div>
+
+        {/* Mensagem rotativa */}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={msgIdx}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.35 }}
+            className="text-muted-foreground text-sm min-h-[2.5rem] flex items-center justify-center"
+          >
+            {LOADING_MSGS[msgIdx]}
+          </motion.p>
+        </AnimatePresence>
+
+        {/* Barra indeterminada (shimmer — nunca chega a 100%) */}
+        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full w-1/3 bg-gradient-to-r from-fitgreen-300 via-fitgreen-500 to-fitgreen-300 rounded-full"
+            animate={{ x: ["−100%", "350%"] }}
+            transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 const features = [
   { icon: <ChefHat className="w-6 h-6" />, title: "Chefe Virtual", desc: "Nosso chefe virtual cria receitas personalizadas com seus ingredientes" },
@@ -166,33 +238,7 @@ export default function HomePage() {
       {/* Overlay de carregamento global */}
       <AnimatePresence>
         {isGlobalLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-4 text-center"
-          >
-            <div className="bg-card p-8 rounded-3xl shadow-2xl border border-border flex flex-col items-center gap-6 max-w-sm">
-              <div className="relative">
-                <Loader2 className="w-16 h-16 animate-spin text-fitgreen-500" />
-                <Bot className="w-8 h-8 text-fitgreen-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold">Criando sua Receita</h3>
-                <p className="text-muted-foreground text-sm">
-                  Nosso Chefe está buscando as melhores referências para preparar sua <strong>{query}</strong>...
-                </p>
-              </div>
-              <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full bg-fitgreen-500"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 15, ease: "linear" }}
-                />
-              </div>
-            </div>
-          </motion.div>
+          <LoadingOverlay query={query} />
         )}
       </AnimatePresence>
 

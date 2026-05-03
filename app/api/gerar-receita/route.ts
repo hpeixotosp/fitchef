@@ -220,16 +220,13 @@ export async function POST(req: NextRequest) {
 
     const recipe = mapToRecipe(parsed, sanitize(body.mode as string) || "normal");
     
-    // Geramos a imagem DEPOIS da receita, usando exatamente o nome e ingredientes criados pela IA
-    const ingredientsList = recipe.ingredients.map(i => i.ingredient.name).join(", ");
-    const imagePromptDetails = `${recipe.name} made with ${ingredientsList}`;
-    
-    const imageBase64 = await generateRecipeImage(imagePromptDetails);
+    // Imagem via Pollinations.ai — retorna URL instantaneamente, sem chamada extra
+    const imageUrl = await generateRecipeImage(recipe.name);
     clearTimeout(timeout);
 
-    // Adiciona a imagem gerada se existir
-    if (imageBase64) {
-      recipe.imageBase64 = imageBase64;
+    // Adiciona a URL da imagem à receita
+    if (imageUrl) {
+      recipe.imageBase64 = imageUrl; // mantemos o campo para compatibilidade com o frontend
     }
 
     return NextResponse.json({ recipe, source: "gemini" });

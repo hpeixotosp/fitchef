@@ -41,12 +41,11 @@ export async function callGemini(prompt: string): Promise<string> {
     generationConfig: {
       temperature: 0.8,
       maxOutputTokens: 2048,
-      responseMimeType: "application/json",
     },
     tools: [
       {
-        googleSearchRetrieval: {}
-      }
+        googleSearch: {}
+      } as any
     ],
     safetySettings: [
       { category: HarmCategory.HARM_CATEGORY_HARASSMENT,        threshold: HarmBlockThreshold.BLOCK_NONE },

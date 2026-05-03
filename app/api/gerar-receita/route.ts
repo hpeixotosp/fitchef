@@ -80,7 +80,8 @@ MODO: ${mode}
 OBJETIVO NUTRICIONAL: ${nutritionGoal}
 
 Instruções adicionais:
-- Crie uma receita que USE os ingredientes informados (não apenas os cite)
+- IMPORTANTE: Se o campo INGREDIENTES DISPONÍVEIS for "variados" ou estiver vazio, você DEVE sugerir os ingredientes ideais para o prato solicitado.
+- Crie uma receita que USE os ingredientes informados (se houver) ou os que você sugerir.
 - No modo "geladeira-vazia", use o máximo possível dos ingredientes informados
 - Cada passo deve ser detalhado, com técnicas, temperaturas e pontos de cozimento
 - O score nutricional deve ser honesto (0=ruim, 10=excelente)

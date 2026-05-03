@@ -44,6 +44,7 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<{ id: string; name: string; emoji: string; description: string; prepTimeMinutes: number; cookTimeMinutes: number; nutritionPerServing: { calories: number } }[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [isGlobalLoading, setIsGlobalLoading] = useState(false);
   const [weekRecipe, setWeekRecipe] = useState<{ id: string; name: string; emoji: string; description: string; nutritionScore: number; prepTimeMinutes: number; cookTimeMinutes: number; nutritionPerServing: { calories: number } } | null>(null);
   const [isLoadingWeek, setIsLoadingWeek] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -147,13 +148,53 @@ export default function HomePage() {
     if (searchResults.length > 0) {
       handleSelectResult(searchResults[0]);
     } else {
-      const recipe = await performSearch(query);
-      if (recipe) handleSelectResult(recipe);
+      setIsGlobalLoading(true);
+      try {
+        const recipe = await performSearch(query);
+        if (recipe) {
+          handleSelectResult(recipe);
+        }
+      } finally {
+        setIsGlobalLoading(false);
+      }
     }
   };
 
   return (
     <div className="min-h-screen">
+      {/* Overlay de carregamento global */}
+      <AnimatePresence>
+        {isGlobalLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-4 text-center"
+          >
+            <div className="bg-card p-8 rounded-3xl shadow-2xl border border-border flex flex-col items-center gap-6 max-w-sm">
+              <div className="relative">
+                <Loader2 className="w-16 h-16 animate-spin text-fitgreen-500" />
+                <Bot className="w-8 h-8 text-fitgreen-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold">Criando sua Receita</h3>
+                <p className="text-muted-foreground text-sm">
+                  Nosso Chefe está buscando as melhores referências para preparar sua <strong>{query}</strong>...
+                </p>
+              </div>
+              <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-fitgreen-500"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 15, ease: "linear" }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Hero ── */}
       <section className="relative hero-gradient overflow-hidden py-20 md:py-32">
         <div className="absolute top-0 left-1/4 w-72 h-72 bg-fitgreen-300/20 rounded-full blur-3xl" />

@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = process.env.GEMINI_API_KEY ?? "";
-const IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image";
+const API_KEY = (process.env.GEMINI_API_KEY ?? "").trim();
+const IMAGE_MODEL = process.env.GEMINI_IMAGE_MODEL ?? "imagen-3.0-generate-001";
 
 let genAI: GoogleGenerativeAI | null = null;
 
@@ -22,10 +22,7 @@ export async function generateRecipeImage(recipeName: string): Promise<string | 
 
   try {
     const model = getClient().getGenerativeModel({
-      model: IMAGE_MODEL,
-      generationConfig: {
-        temperature: 0.4,
-      },
+      model: IMAGE_MODEL
     });
 
     const result = await model.generateContent(prompt);

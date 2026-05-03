@@ -57,6 +57,12 @@ export default function GeneratorPage() {
   const removeIngredient = (id: string) =>
     setSelected(prev => prev.filter(s => s.ingredient.id !== id));
 
+  const updateQuantity = (id: string, qty: number) =>
+    setSelected(prev => prev.map(s => s.ingredient.id === id ? { ...s, quantity: Math.max(1, qty) } : s));
+
+  const updateUnit = (id: string, unit: IngredientWithQuantity["unit"]) =>
+    setSelected(prev => prev.map(s => s.ingredient.id === id ? { ...s, unit } : s));
+
   const toggleDiet = (tag: DietTag) =>
     setDietTags(prev =>
       prev.includes(tag) ? prev.filter(d => d !== tag) : [...prev, tag]
@@ -192,15 +198,47 @@ export default function GeneratorPage() {
         {selected.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
             {selected.map(s => (
-              <div key={s.ingredient.id} className="ingredient-chip">
-                {s.ingredient.icon} {s.ingredient.name}
-                <button
-                  aria-label={`Remover ${s.ingredient.name}`}
-                  onClick={() => removeIngredient(s.ingredient.id)}
-                  className="ml-1 hover:text-red-500 transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                </button>
+              <div key={s.ingredient.id} className="flex items-center gap-2 flex-wrap bg-fitgreen-50 border border-fitgreen-200 rounded-xl px-3 py-2">
+                <span className="text-sm font-medium flex items-center gap-1">{s.ingredient.icon} {s.ingredient.name}</span>
+                <div className="flex items-center gap-1 ml-auto">
+                  <button
+                    aria-label="Diminuir quantidade"
+                    onClick={() => updateQuantity(s.ingredient.id, s.quantity - (s.unit === "un" ? 1 : 25))}
+                    className="w-6 h-6 rounded-full border border-fitgreen-300 flex items-center justify-center text-fitgreen-700 hover:bg-fitgreen-100 font-bold text-xs"
+                  >−</button>
+                  <input
+                    type="number"
+                    min={1}
+                    value={s.quantity}
+                    onChange={e => updateQuantity(s.ingredient.id, Number(e.target.value))}
+                    className="w-12 text-center text-xs border border-fitgreen-300 rounded-md py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-fitgreen-400"
+                  />
+                  <button
+                    aria-label="Aumentar quantidade"
+                    onClick={() => updateQuantity(s.ingredient.id, s.quantity + (s.unit === "un" ? 1 : 25))}
+                    className="w-6 h-6 rounded-full border border-fitgreen-300 flex items-center justify-center text-fitgreen-700 hover:bg-fitgreen-100 font-bold text-xs"
+                  >+</button>
+                  <select
+                    value={s.unit}
+                    onChange={e => updateUnit(s.ingredient.id, e.target.value as IngredientWithQuantity["unit"])}
+                    className="text-xs border border-fitgreen-300 rounded-md py-0.5 px-1 bg-white focus:outline-none focus:ring-1 focus:ring-fitgreen-400"
+                  >
+                    <option value="g">g</option>
+                    <option value="ml">ml</option>
+                    <option value="un">un</option>
+                    <option value="xícara">xíc</option>
+                    <option value="colher de sopa">c. sopa</option>
+                    <option value="colher de chá">c. chá</option>
+                    <option value="a gosto">a gosto</option>
+                  </select>
+                  <button
+                    aria-label={`Remover ${s.ingredient.name}`}
+                    onClick={() => removeIngredient(s.ingredient.id)}
+                    className="ml-1 hover:text-red-500 transition-colors text-muted-foreground"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

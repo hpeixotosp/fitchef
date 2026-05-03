@@ -51,9 +51,23 @@ function buildPrompt(body: Record<string, unknown>): string {
     ? `\nPRATO EXATO SOLICITADO: "${dishName}". Você DEVE gerar uma versão saudável ou tradicional exatamente deste prato.`
     : "";
 
+const SOURCES = [
+    "https://www.youtube.com/@Cakepedia",
+    "https://www.youtube.com/@ReceitasLowCarbparaDiabéticos",
+    "https://www.youtube.com/@13MinutosVidanosEUA",
+    "https://www.youtube.com/@matheusdavilanutri",
+    "https://www.youtube.com/@SarahBonet",
+    "https://www.youtube.com/@anjolowcarb",
+    "https://www.youtube.com/@essen_paradies",
+    "https://www.youtube.com/@fandomthuane"
+  ].join(", ");
+
   return `Você é um chef nutricional especialista brasileiro. Gere uma receita criativa e deliciosa em português brasileiro com base nas informações abaixo.
 Responda APENAS com um JSON válido, sem texto adicional, sem markdown, sem blocos de código, sem explicações.
 ${dishInstruction}
+
+FONTES DE REFERÊNCIA (Use estas fontes para buscar ideias criativas, especialmente para receitas com poucos ingredientes e sugestões do dia):
+${SOURCES}
 
 INGREDIENTES DISPONÍVEIS: ${ingredients}
 EQUIPAMENTOS: ${equipment}
